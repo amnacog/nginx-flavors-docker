@@ -1,10 +1,16 @@
+function defaultInstallSet () {
+    [ -f configure ] && ./configure 
+    [ -f Configure ] && ./Configure
+    make -j$(nproc)
+    make install
+}
+
 function BaseInstall () {
-    echo "[Info] Building $(basename $1)"
-    cd $1
+    echo "[Info] Building $(basename $1) (this may take a while)"
+    echo $2
     (
-        [ -f configure ] && sh configure $2
-        [ -f Configure ] && sh Configure $2
-        make $3
-        make install
+        cd $1
+        [ -z "$2" ] && defaultInstallSet || eval "$2"
+        cd - &>/dev/null
     )
-} 
+}

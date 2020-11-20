@@ -10,7 +10,24 @@ ARG LUAVERSION=5.3.5
 ARG LUAROCKSVERSION=3.4.0
 ARG OPMVERSION=0.0.5
 
-ARG STATICMODS=\
+
+ARG NGX_FLAGS="\
+--prefix=/var/lib/nginx,\
+--sbin-path=/usr/sbin/nginx,\
+--modules-path=/usr/lib/nginx/modules,\
+--conf-path=/etc/nginx/nginx.conf,\
+--pid-path=/run/nginx/nginx.pid,\
+--lock-path=/run/nginx/nginx.lock,\
+--http-client-body-temp-path=/var/lib/nginx/tmp/client_body,\
+--http-proxy-temp-path=/var/lib/nginx/tmp/proxy,\
+--http-fastcgi-temp-path=/var/lib/nginx/tmp/fastcgi,\
+--http-uwsgi-temp-path=/var/lib/nginx/tmp/uwsgi,\
+--http-scgi-temp-path=/var/lib/nginx/tmp/scgi,\
+--with-perl_modules_path=/usr/lib/perl5/vendor_perl,\
+--user=nginx,\
+--group=nginx"
+
+ARG NGX_FEATURES="\
 compat,\
 threads,\
 file-aio,\
@@ -42,11 +59,17 @@ http_image_filter_module=dynamic,\
 http_geoip_module=dynamic,\
 http_perl_module=dynamic,\
 mail=dynamic,\
-stream=dynamic
+stream=dynamic"
 
-ARG DYNAMICMODS=
+ARG NGX_MODS_DEPS="\
+https://github.com/maxmind/libmaxminddb:1.4.3;./bootstrap && ./configure && make -j$(nproc) && make install,\
+https://github.com/spiderlabs/modsecurity:v3.0.4;./build.sh && ./configure && make -j$(nproc) && make install,\
+https://github.com/LuaJIT/LuaJIT:v2.0.5"
 
-ARG LUAROCKSMODS=
+
+ARG NGX_MODS=
+
+ARG LUAROCKS_MODS=
 
 ADD mods.txt build-scripts/ /tmp/scripts/
 
@@ -55,9 +78,23 @@ RUN /tmp/scripts/deps.sh add \
     git \
     make \
     gcc \
+    g++ \
+    autoconf \
+    automake \
     musl-dev \
     readline-dev \
-    perl
+    linux-headers \
+    libtool \
+    libaio-dev \
+    pcre-dev \
+    openssl-dev \
+    zlib-dev \
+    libxslt-dev \
+    libxml2 \
+    gd-dev \
+    geoip-dev \
+    perl \
+    perl-dev
 
 RUN /tmp/scripts/build-base.sh
 
